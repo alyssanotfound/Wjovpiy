@@ -1,6 +1,6 @@
 /*  OctoWS2811 VideoSDcard.ino - Video on LEDs, played from SD Card
     http://www.pjrc.com/teensy/td_libs_OctoWS2811.html
-    Copyright (c) 2014 Paul Stoffregen, PJRC.COM, LLC
+    Copyright (c) 2014 Paul Stoffregen, PJRC.COM, LLC h
 */
 
 #include <OctoWS2811.h>
@@ -24,23 +24,27 @@ OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, WS2811_800kHz);
 File videofile;
 
 // *************************added from multiButtonPress *************************
-const int  buttonPresetPin = 17;    // the pin that the pushbutton is attached to
-const int  buttonResetPin = 18;
+const int  buttonPresetPin = 17;    // the pin that the pushbutton is attached to. other side to PWR
+const int  buttonPresetPinPwr = 18;
+const int  buttonResetPin = 22;
+const int  buttonResetPinPwr = 23;
 
 // button counter for Preset 
 int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 0;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-// button counter for Preset 
+// button counter for Reset 
 int buttonPushCounterReset = 0;   // counter for the number of button presses
 int buttonStateReset = 0;         // current state of the button
 int lastButtonStateReset = 1;     // previous state of the button
 
 //setup for filename 
 //will eventually replace below with counting num of presets from SD card and storing names
-int numPresets = 4;
-char *filenames[] = { "VIDEO.BIN","SYCHO.BIN","SWIPE.BIN","CURL.BIN" };
+int numPresets = 6;
+//change for TA, TB, or TC
+char *filenames[] = { "VIDEO.BIN","T1C.BIN","T2C.BIN","T3C.BIN","T4C.BIN","T5C.BIN" };
+
 int curFileNum = 0;
 
 //for SD card read
@@ -49,11 +53,13 @@ File root;
 // ***************************************************************************
 
 void setup() {
-  //added from multiButtonPress
   pinMode(buttonPresetPin, INPUT_PULLUP);
+  pinMode(buttonPresetPinPwr, OUTPUT);
   pinMode(buttonResetPin, INPUT_PULLUP);
-  //FILENAME = filenames[ curFileNum ];
-  
+  pinMode(buttonResetPinPwr, OUTPUT);
+  //write two pins high for one side of each button
+  digitalWrite(buttonPresetPinPwr, HIGH);
+  digitalWrite(buttonPresetPinPwr, HIGH);
   Serial.begin(9600);
   while (!Serial){
   //wait for serial to initalize
@@ -62,8 +68,6 @@ void setup() {
   Serial.println("VideoSDcard");
   leds.begin();
   leds.show();
-  //added delay
-  delayMicroseconds(3600);
   if (!SD.begin(3)) stopWithErrorMessage("Could not access SD card");
   Serial.println("SD card ok");
   //startNew("start from setup");
@@ -72,17 +76,12 @@ void setup() {
   Serial.println("File opened");
   playing = true;
   elapsedSinceLastFrame = 0;
-  //this works below to close and open new file, but doesnt work near button area
-  //close currently playing vid, increment vid number, then in loop it should start playing
-  //error("does this work");
-  //curFileNum++;
 }
 
 // read from the SD card, true=ok, false=unable to read
 // the SD library is much faster if all reads are 512 bytes
 // this function lets us easily read any size, but always
 // requests data from the SD library in 512 byte blocks.
-//
 bool sd_card_read(void *ptr, unsigned int len, bool resetBuf) {
 
   static unsigned char buffer[512];
@@ -102,34 +101,23 @@ bool sd_card_read(void *ptr, unsigned int len, bool resetBuf) {
       n = videofile.read(buffer, 512);
       if (n == 0) return false;		
       buflen = n;
-      //Serial.println(buflen);
       bufpos = 0;
     }
     unsigned int n = buflen;
     if (n > len) n = len;
     memcpy(dest, buffer + bufpos, n);
-//    Serial.print("DATA: ");
-//    Serial.println(dest[0]);
-//    Serial.println(bufpos);
-//    Serial.println(buflen);
-//    Serial.println(len);
     dest += n;
     bufpos += n;
     buflen -= n;
     len -= n;
     
   }
-  Serial.print("buf pos and len: ");
-  Serial.println(bufpos);
-  Serial.println(buflen);
   return true;
 }
 
 // skip past data from the SD card
 //if we read less than frame size skip forward to next header
 void sd_card_skip(unsigned int len) {
-  Serial.print("sd_card_skip: ");
-  Serial.println(len);
   unsigned char buf[256];
 
   while (len > 0) {
@@ -142,27 +130,11 @@ void sd_card_skip(unsigned int len) {
 
 
 void loop() {
-  //if in the last loop the button was pressed
-//  Serial.println(incrementVid);
-//  if (incrementVid == true){
-//    newVid();
-//    return;
-//  }
+
   unsigned char header[5];
   
-  Serial.print("is anything playing? y/n: ");
-  Serial.println(playing);
-  delay(1000);
   if (playing) {
-    Serial.print("playing is true, playing file num:");
-    Serial.println(curFileNum);
     if (sd_card_read(header, 5, incrementVid)) {
-          Serial.print("5 byte header can be read. first byte: ");
-          Serial.println(header[0]);
-          Serial.println(header[1]);
-          Serial.println(header[2]);
-          Serial.println(header[3]);
-          Serial.println(header[4]);
       if (header[0] == '*') {
         // found an image frame
         unsigned int size = (header[1] | (header[2] << 8)) * 3;
@@ -196,8 +168,6 @@ void loop() {
     delay(500);
     videofile = SD.open(filenames[ curFileNum ], FILE_READ);
     if (videofile) {
-      Serial.print("starting playing new file now:");
-      Serial.println(videofile.name());
       playing = true;
       elapsedSinceLastFrame = 0;
     }
@@ -228,35 +198,37 @@ void loop() {
   lastButtonState = buttonState;
  
   // ***************************************************************************
+  
+  // *************************added from multiButtonPress FOR RESET BUTTON *******
+  buttonStateReset = digitalRead(buttonResetPin);
+  // compare the buttonState to its previous state
+  if (buttonStateReset != lastButtonStateReset) {
+    // if the state has changed, increment the counter
+    if (buttonStateReset == HIGH) {
+      buttonPushCounterReset++;
+      incrementVid = true;
+      error("reset to first preset");
+      curFileNum = 0;
+    } else {
+      //Serial.println("off");
+    }
+    delay(50);
+  }
+  lastButtonStateReset = buttonStateReset;
+ 
+  // ***************************************************************************
 }
 
 void error(const char *str) {
-  Serial.print("error: ");
   Serial.println(str);
-  Serial.print("closing file: ");
-  Serial.println(videofile.name());
   videofile.close();
   playing = false;
 }
 
 void stopWithErrorMessage(const char *str) {
   while (1) {
-    Serial.println(str);
     delay(1000);
   }
 }
 
-//void newVid() {
-//  Serial.print("closing file: ");
-//  Serial.println(videofile.name());
-//  videofile.close();
-//  playing = false;
-//  //figure out new vid number
-//  if (curFileNum == (numPresets-1) ) {
-//      curFileNum = 0;
-//  } else {
-//      curFileNum++;
-//  }
-//  incrementVid = false;
-//}
 
