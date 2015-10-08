@@ -48,7 +48,7 @@ boolean ledLayout = true;    // layout of rows, true = even is left->right
 double framerate = 25;    // You MUST set this to the movie's frame rate
                              // Processing does not seem to have a way to detect it.
 
-Movie myMovie = new Movie(this, "/Users/alyssa/vids/test5/ledtest_orange_5C.mov");
+Movie myMovie = new Movie(this, "/Users/alyssa/vids/video-test/test17/flow_multi_color_III.mov");
 FileOutputStream myFile;     // edit output filename below...
 
 float gamma = 1.8;
@@ -64,7 +64,7 @@ void setup() {
     gammatable[i] = (int)(pow((float)i / 255.0, gamma) * 255.0 + 0.5);
   }
   try {
-    myFile = new FileOutputStream("/Users/alyssa/vids/T5C.BIN");
+    myFile = new FileOutputStream("/Users/alyssa/vids/TC17.BIN");
   } catch (Exception e) {
     exit();
   }

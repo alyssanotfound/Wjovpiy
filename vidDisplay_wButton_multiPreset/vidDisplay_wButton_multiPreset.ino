@@ -1,6 +1,14 @@
 /*  OctoWS2811 VideoSDcard.ino - Video on LEDs, played from SD Card
     http://www.pjrc.com/teensy/td_libs_OctoWS2811.html
     Copyright (c) 2014 Paul Stoffregen, PJRC.COM, LLC h
+    
+    wed 9:41pm - code works perfectly on Tc but on Tb, the button doesn't work. it isn't an issue with the 
+    files on the sd card, or with the file playing (if change first file playing it works), or physical button
+    bc works on C and no serial prints display when the button is pressed, so it must be that the spare pins on 
+    octo board don't work (but they worked at home, so maybe it is insulation problem under the teensy. 
+    not sure exactly about why tA wasn't registering a button press, maybe it was bc the SD cards were switched.
+    
+    when home, check that all output pins work on teensys
 */
 
 #include <OctoWS2811.h>
@@ -26,24 +34,17 @@ File videofile;
 // *************************added from multiButtonPress *************************
 const int  buttonPresetPin = 17;    // the pin that the pushbutton is attached to. other side to PWR
 const int  buttonPresetPinPwr = 18;
-const int  buttonResetPin = 22;
-const int  buttonResetPinPwr = 23;
 
 // button counter for Preset 
 int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 0;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-// button counter for Reset 
-int buttonPushCounterReset = 0;   // counter for the number of button presses
-int buttonStateReset = 0;         // current state of the button
-int lastButtonStateReset = 1;     // previous state of the button
-
 //setup for filename 
 //will eventually replace below with counting num of presets from SD card and storing names
-int numPresets = 6;
+int numPresets = 10;
 //change for TA, TB, or TC
-char *filenames[] = { "VIDEO.BIN","T1C.BIN","T2C.BIN","T3C.BIN","T4C.BIN","T5C.BIN" };
+char *filenames[] = { "T1C.BIN","VIDEO.BIN","T2C.BIN","T3C.BIN","T4C.BIN","T5C.BIN","TC17.BIN","TC18.BIN","TC19.BIN","TC20.BIN" };
 
 int curFileNum = 0;
 
@@ -55,11 +56,10 @@ File root;
 void setup() {
   pinMode(buttonPresetPin, INPUT_PULLUP);
   pinMode(buttonPresetPinPwr, OUTPUT);
-  pinMode(buttonResetPin, INPUT_PULLUP);
-  pinMode(buttonResetPinPwr, OUTPUT);
-  //write two pins high for one side of each button
+
+  //FIXXXXX should consisently be high or low
   digitalWrite(buttonPresetPinPwr, HIGH);
-  digitalWrite(buttonPresetPinPwr, HIGH);
+
   Serial.begin(9600);
   while (!Serial){
   //wait for serial to initalize
@@ -70,7 +70,6 @@ void setup() {
   leds.show();
   if (!SD.begin(3)) stopWithErrorMessage("Could not access SD card");
   Serial.println("SD card ok");
-  //startNew("start from setup");
   videofile = SD.open(filenames[ curFileNum ], FILE_READ);
   if (!videofile) stopWithErrorMessage("Could not read file");
   Serial.println("File opened");
@@ -197,26 +196,6 @@ void loop() {
   }
   lastButtonState = buttonState;
  
-  // ***************************************************************************
-  
-  // *************************added from multiButtonPress FOR RESET BUTTON *******
-  buttonStateReset = digitalRead(buttonResetPin);
-  // compare the buttonState to its previous state
-  if (buttonStateReset != lastButtonStateReset) {
-    // if the state has changed, increment the counter
-    if (buttonStateReset == HIGH) {
-      buttonPushCounterReset++;
-      incrementVid = true;
-      error("reset to first preset");
-      curFileNum = 0;
-    } else {
-      //Serial.println("off");
-    }
-    delay(50);
-  }
-  lastButtonStateReset = buttonStateReset;
- 
-  // ***************************************************************************
 }
 
 void error(const char *str) {
