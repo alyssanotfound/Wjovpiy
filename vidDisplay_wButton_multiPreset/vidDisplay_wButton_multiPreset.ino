@@ -9,6 +9,8 @@
     not sure exactly about why tA wasn't registering a button press, maybe it was bc the SD cards were switched.
     
     when home, check that all output pins work on teensys
+    
+    update: the issue was that for tA and tB, the other end of the button needed to be at high instead of low
 */
 
 #include <OctoWS2811.h>
@@ -57,13 +59,13 @@ void setup() {
   pinMode(buttonPresetPin, INPUT_PULLUP);
   pinMode(buttonPresetPinPwr, OUTPUT);
 
-  //FIXXXXX should consisently be high or low
+  //FIXXXXX should consisently be low, but Ta and Tb work on high
   digitalWrite(buttonPresetPinPwr, HIGH);
 
   Serial.begin(9600);
-  while (!Serial){
-  //wait for serial to initalize
-  };
+//  while (!Serial){
+//  //wait for serial to initalize
+//  };
   delay(50);
   Serial.println("VideoSDcard");
   leds.begin();
