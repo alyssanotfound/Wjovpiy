@@ -34,19 +34,27 @@ OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, WS2811_800kHz);
 File videofile;
 
 // *************************added from multiButtonPress *************************
-const int  buttonPresetPin = 17;    // the pin that the pushbutton is attached to. other side to PWR
-const int  buttonPresetPinPwr = 18;
+//for tC - new preset: 19 and 22, reset: 23 and 1
+const int  buttonPresetPin = 19;    // the pin that the pushbutton is attached to. other side to GND
+const int  buttonPresetPinPwr = 22;
+const int  buttonResetPin = 23;    // the pin that the pushbutton is attached to. other side to GND
+const int  buttonResetPinPwr = 1;
 
 // button counter for Preset 
 int buttonPushCounter = 0;   // counter for the number of button presses
-int buttonState = 0;         // current state of the button
-int lastButtonState = 1;     // previous state of the button
+int buttonState = 1;         // current state of the button
+int lastButtonState = 0;     // previous state of the button
+
+// button counter for Reset 
+int buttonPushCounterReset = 0;   // counter for the number of button presses
+int buttonStateReset = 1;         // current state of the button
+int lastButtonStateReset = 0;     // previous state of the button
 
 //setup for filename 
 //will eventually replace below with counting num of presets from SD card and storing names
 int numPresets = 10;
 //change for TA, TB, or TC
-char *filenames[] = { "T1C.BIN","VIDEO.BIN","T2C.BIN","T3C.BIN","T4C.BIN","T5C.BIN","TC17.BIN","TC18.BIN","TC19.BIN","TC20.BIN" };
+char *filenames[] = { "T1A.BIN","VIDEO.BIN","T2A.BIN","T3A.BIN","T4A.BIN","T5A.BIN","TA17.BIN","TA18.BIN","TA19.BIN","TA20.BIN" };
 
 int curFileNum = 0;
 
@@ -58,15 +66,26 @@ File root;
 void setup() {
   pinMode(buttonPresetPin, INPUT_PULLUP);
   pinMode(buttonPresetPinPwr, OUTPUT);
+  
+  pinMode(buttonResetPin, INPUT_PULLUP);
+  pinMode(buttonResetPinPwr, OUTPUT);
+//  pinMode(17, INPUT_PULLUP);
+//  pinMode(19, INPUT_PULLUP);
+//  pinMode(22, INPUT_PULLUP);
+//  pinMode(23, INPUT_PULLUP);
+//  pinMode(1, INPUT_PULLUP);
+//  pinMode(0, INPUT_PULLUP);
+  
 
-  //FIXXXXX should consisently be low, but Ta and Tb work on high
-  digitalWrite(buttonPresetPinPwr, HIGH);
+  //ADDED - we use a pullup resistor so opp side must be ground
+  digitalWrite(buttonPresetPinPwr, LOW);
+  digitalWrite(buttonResetPinPwr, LOW);
 
   Serial.begin(9600);
 //  while (!Serial){
 //  //wait for serial to initalize
 //  };
-  delay(50);
+  delay(3000);
   Serial.println("VideoSDcard");
   leds.begin();
   leds.show();
@@ -135,13 +154,14 @@ void loop() {
   unsigned char header[5];
   
   if (playing) {
+    //Serial.println("yes playing");
     if (sd_card_read(header, 5, incrementVid)) {
       if (header[0] == '*') {
         // found an image frame
         unsigned int size = (header[1] | (header[2] << 8)) * 3;
         unsigned int usec = header[3] | (header[4] << 8);
         unsigned int readsize = size;
-	 //Serial.printf("v: %u %u", size, usec);
+	//Serial.printf("v: %u %u", size, usec);
         if (readsize > sizeof(drawingMemory)) {
           readsize = sizeof(drawingMemory);
         }
@@ -178,8 +198,8 @@ void loop() {
   buttonState = digitalRead(buttonPresetPin);
   // compare the buttonState to its previous state
   if (buttonState != lastButtonState) {
-    // if the state has changed, increment the counter
-    if (buttonState == HIGH) {
+    // ADDED - switched to be low, which would indicate pushed button
+    if (buttonState == LOW) {
       buttonPushCounter++;
       incrementVid = true;
       error("new preset");
@@ -197,7 +217,28 @@ void loop() {
     delay(50);
   }
   lastButtonState = buttonState;
- 
+  //********************************************************************************
+  
+  // *************************added from multiButtonPress FOR RESET BUTTON *******
+  buttonStateReset = digitalRead(buttonResetPin);
+  // compare the buttonState to its previous state
+  if (buttonStateReset != lastButtonStateReset) {
+    // ADDED - switched to be low, which would indicate pushed button
+    if (buttonStateReset == LOW) {
+      buttonPushCounterReset++;
+      incrementVid = true;
+      error("reset");
+      curFileNum = 0;
+      //Serial.println("on");
+      Serial.print("number of button pushes:  ");
+      Serial.println(buttonPushCounterReset); 
+    } else {
+      //Serial.println("off");
+    }
+    delay(50);
+  }
+  lastButtonStateReset = buttonStateReset;
+  //********************************************************************************
 }
 
 void error(const char *str) {
