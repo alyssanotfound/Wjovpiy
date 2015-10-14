@@ -48,9 +48,10 @@ boolean ledLayout = true;    // layout of rows, true = even is left->right
 double framerate = 25;    // You MUST set this to the movie's frame rate
                              // Processing does not seem to have a way to detect it.
 
-Movie myMovie = new Movie(this, "/Users/alyssa/vids/video-test/test17/flow_multi_color_III.mov");
+Movie myMovie = new Movie(this, "/Users/alyssa/vids/coloredrgbdots3.mov");
 FileOutputStream myFile;     // edit output filename below...
 
+//originally gamma is 1.8
 float gamma = 1.8;
 PImage ledImage;
 int[] gammatable = new int[256];
@@ -60,11 +61,14 @@ long picoseconds_per_frame = (long)(1e12 / framerate + 0.5);
 boolean fileopen=true;
 
 void setup() {
+  printArray(Serial.list());
+  
   for (int i=0; i < 256; i++) {
     gammatable[i] = (int)(pow((float)i / 255.0, gamma) * 255.0 + 0.5);
   }
+  //println(gammatable);
   try {
-    myFile = new FileOutputStream("/Users/alyssa/vids/TC17.BIN");
+    myFile = new FileOutputStream("/Users/alyssa/vids/noclrwiring.bin");
   } catch (Exception e) {
     exit();
   }
@@ -131,6 +135,10 @@ void image2data(PImage image, byte[] data, boolean layout) {
         pixel[i] = image.pixels[x + (y + linesPerPin * i) * image.width];
         pixel[i] = colorWiring(pixel[i]);
       }
+      for (int i=0; i < 8; i++) {
+        println(pixel[i]);
+      }
+      
       // convert 8 pixels to 24 bytes
       for (mask = 0x800000; mask != 0; mask >>= 1) {
         byte b = 0;
@@ -146,7 +154,7 @@ void image2data(PImage image, byte[] data, boolean layout) {
 // translate the 24 bit color from RGB to the actual
 // order used by the LED wiring.  GRB is the most common.
 int colorWiring(int c) {
-  int red = (c & 0xFF0000) >> 16;
+  int red = (c & 0x000000) >> 16;
   int green = (c & 0x00FF00) >> 8;
   int blue = (c & 0x0000FF);
   red = gammatable[red];

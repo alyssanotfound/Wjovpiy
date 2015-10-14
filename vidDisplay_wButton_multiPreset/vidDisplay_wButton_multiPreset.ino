@@ -52,10 +52,20 @@ int lastButtonStateReset = 0;     // previous state of the button
 
 //setup for filename 
 //will eventually replace below with counting num of presets from SD card and storing names
-int numPresets = 10;
+int numPresets = 35;
 //change for TA, TB, or TC
-char *filenames[] = { "T1A.BIN","VIDEO.BIN","T2A.BIN","T3A.BIN","T4A.BIN","T5A.BIN","TA17.BIN","TA18.BIN","TA19.BIN","TA20.BIN" };
+char *filenames[] = { "T1.BIN","T2.BIN","T3.BIN","T4.BIN","T5.BIN","T6.BIN","T7.BIN","T8.BIN","T9.BIN","T10.BIN",
+"T11.BIN","T12.BIN","T13.BIN","T14.BIN","T15.BIN","T16.BIN","T17.BIN","T18.BIN","T19.BIN","T20.BIN",
+"T21.BIN","T22.BIN","T23.BIN","T24.BIN","T25.BIN","T26.BIN","T27.BIN","T28.BIN","T29.BIN","T30.BIN",
+"T31.BIN","T32.BIN","T33.BIN","T34.BIN","T35.BIN"};
 
+//char *filenames[] = { "T1A.bin","T1B.bin","T1C.bin","T2A.bin","T2B.bin","T4A.bin","T4B.bin","T5A.bin","T5B.bin","T5C.bin",
+//"T7A.bin","T7B.bin","T8A.bin","T8B.bin","T8C.bin","T8D.bin","T10A.bin","T10B.bin","T10C.bin","T11A.bin","T11B.bin",
+//"T11C.bin","T11D.bin","T12A.bin","T12B.bin","T12C.bin","T12D.bin","T13A.bin","T13B.bin","T14A.bin","T14B.bin","T15A.bin",
+//"T15B.bin","T17A.bin","T17B.bin","T18A.bin","T18B.bin","T18C.bin","T18D.bin","T19A.bin","T19B.bin","T21A.bin","T21B.bin",
+//"T23A.bin","T23B.bin","T25A.bin","T26A.bin","T30A.bin","T31A.bin","T32B.bin","T32C.bin","T32D.bin","T33A.bin","T33B.bin","T35A.bin" };
+
+//char *filenames[] = { "gamma1_8.BIN","gamma1_0.BIN","gamma0_8.BIN","gamma0_2.BIN"};
 int curFileNum = 0;
 
 //for SD card read
