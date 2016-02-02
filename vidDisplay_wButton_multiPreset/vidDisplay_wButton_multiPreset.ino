@@ -69,9 +69,9 @@ int lastButtonStateReset = 0;
 
 //setup for filename 
 //will eventually replace below with counting num of presets from SD card and storing names
-int numPresets = 44;
+int numPresets = 45;
 //change for TA, TB, or TC
-char *filenames[] = { "T.bin","T1.bin","T2.BIN","T3.BIN","T4.BIN","T5.BIN","T6.BIN","T7.BIN","T8.BIN","T9.BIN","T10.BIN",
+char *filenames[] = { "TA.bin","T.bin","T1.bin","T2.BIN","T3.BIN","T4.BIN","T5.BIN","T6.BIN","T7.BIN","T8.BIN","T9.BIN","T10.BIN",
 "T11.BIN","T12.BIN","T13.BIN","T14.BIN","T15.BIN","T16.BIN","T17.BIN","T18.BIN","T19.BIN","T20.BIN",
 "T21.BIN","T22.BIN","T23.BIN","T24.BIN","T25.BIN","T26.BIN","T27.BIN","T28.BIN","T29.BIN","T30.BIN",
 "T31.BIN","T32.BIN","T33.BIN","T34.BIN","T35.BIN","T26.BIN","T27.BIN","T28.BIN","T29.BIN","T40.BIN",
